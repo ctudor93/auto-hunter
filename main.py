@@ -5,10 +5,10 @@ import time
 import cv2
 import numpy as np
 import mss
-
+import tkinter as tk
 # Define the screen region to capture
 monitor = {"top": 100, "left": 100, "width": 800, "height": 600}
-
+stop = False
 
 # windows = Desktop(backend="uia").windows()
 
@@ -56,22 +56,46 @@ def detect_change(img1, img2, threshold=5):
 # Initial screen capture
 prev_frame = screen_capture()
 
-while True:
-    # Capture the current frame
-    current_frame = screen_capture()
-    
-    # Detect change between frames
-    if detect_change(prev_frame, current_frame):
-        print("Change detected!")
-        
-        # Attempt to bring the target application to focus
-        if bring_window_to_front(target_window_title):
-            # Simulate an input action
-            # pyautogui.write("Hello, world!")  # Example: Typing a string
-            pyautogui.press("F5")          # Pressing Enter
+def main():
+    while stop is False:
+        # Capture the current frame
+        current_frame = screen_capture()
+        global prev_frame
+        # Detect change between frames
+        if detect_change(prev_frame, current_frame):
+            print("Change detected!")
             
-    # Update previous frame
-    prev_frame = current_frame
+            # Attempt to bring the target application to focus
+            if bring_window_to_front(target_window_title):
+                # Simulate an input action
+                # pyautogui.write("Hello, world!")  # Example: Typing a string
+                pyautogui.press("F5")          # Pressing Enter
+                
+        # Update previous frame
+        prev_frame = current_frame
+        
+        # Slow down the loop to prevent too frequent captures
+        time.sleep(1)
     
-    # Slow down the loop to prevent too frequent captures
-    time.sleep(1)
+
+def stop_program():
+    global stop 
+    stop = not stop 
+    button_2.config(text=str(stop) )
+    print(stop) 
+
+# Create the main application window
+app = tk.Tk()
+app.title("test")
+
+# Create and place the button
+button_1 = tk.Button(app, text="test", command=main)
+button_1.pack(pady=20)
+
+button_2 = tk.Button(app, text = str(stop), command=stop_program)
+button_2.pack(pady=20)
+
+
+# Start the Tkinter event loop
+app.minsize(400,400)
+app.mainloop()
