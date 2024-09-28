@@ -6,9 +6,17 @@ import cv2
 import numpy as np
 import mss
 import tkinter as tk
+import threading 
+
+
 # Define the screen region to capture
 monitor = {"top": 100, "left": 100, "width": 800, "height": 600}
+
+#bool used to stop the program from running
 stop = False
+
+# Variable to store thread
+main_thread = None 
 
 # windows = Desktop(backend="uia").windows()
 
@@ -57,10 +65,12 @@ def detect_change(img1, img2, threshold=5):
 prev_frame = screen_capture()
 
 def main():
-    while stop is False:
+    global stop, prev_frame
+    while not stop:
+        
         # Capture the current frame
         current_frame = screen_capture()
-        global prev_frame
+        
         # Detect change between frames
         if detect_change(prev_frame, current_frame):
             print("Change detected!")
@@ -77,25 +87,41 @@ def main():
         # Slow down the loop to prevent too frequent captures
         time.sleep(1)
     
+def start_program():
+    global main_thread, stop
+    stop = False # Reset stop flag
+    
+    #Run main() in a separate thread
+    main_thread = threading.Thread(target= main)
+    main_thread.start()
+    start_button.config( state= tk.DISABLED ) #Disable start button to prevent rerunning
+    
 
 def stop_program():
     global stop 
-    stop = not stop 
-    button_2.config(text=str(stop) )
-    print(stop) 
+    stop = True
+    stop_button.config(text=str(stop) )
+    print("Programmed stopped ")
+    start_button.config(state=tk.ACTIVE) #Enable start button after stopping 
+
+def close_window():
+    global app
+    app.destroy()
+
 
 # Create the main application window
 app = tk.Tk()
 app.title("test")
 
 # Create and place the button
-button_1 = tk.Button(app, text="test", command=main)
-button_1.pack(pady=20)
+start_button = tk.Button(app, text="Start", command=start_program)
+start_button.pack(pady=20)
 
-button_2 = tk.Button(app, text = str(stop), command=stop_program)
-button_2.pack(pady=20)
+stop_button = tk.Button(app, text = str(stop), command=stop_program)
+stop_button.pack(pady=20)
 
-
+close_button = tk.Button(app, text="Exit", command=close_window)
+close_button.pack(side="bottom")
 # Start the Tkinter event loop
 app.minsize(400,400)
 app.mainloop()
